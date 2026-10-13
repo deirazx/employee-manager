@@ -17,9 +17,9 @@ import {
 const Sidebar = ({ mobileOpen = false, onClose }) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const role = localStorage.getItem('userRole') || 'employee'
-  const userName =
-    localStorage.getItem('userName') || (role === 'admin' ? 'Admin' : 'John Doe')
+  const role = localStorage.getItem('userRole') || 'admin'
+  const userName = localStorage.getItem('userName') || 'John Doe'
+  const displayRole = role === 'admin' ? 'Administrator' : 'Employee'
   const userInitial = userName.charAt(0).toUpperCase()
 
   // Auto-close mobile drawer when route changes
@@ -89,7 +89,9 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
             <h2 className="text-sm font-semibold text-white truncate tracking-tight">
               {userName}
             </h2>
-            <p className="text-xs text-slate-400 capitalize truncate">{role}</p>
+            <p className="text-xs text-slate-400 capitalize truncate">
+              {displayRole}
+            </p>
           </div>
         </div>
 
@@ -156,10 +158,13 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
 
       {/* Mobile Drawer (Visible on < md when mobileOpen is true) */}
       <div
-        className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${mobileOpen
-          ? 'opacity-100 pointer-events-auto'
-          : 'opacity-0 pointer-events-none'
-          }`}
+        aria-hidden={!mobileOpen}
+        inert={!mobileOpen ? '' : undefined}
+        className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
+          mobileOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+        }`}
       >
         {/* Backdrop overlay */}
         <div
