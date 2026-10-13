@@ -29,6 +29,8 @@ const LoginRightSide = ({ initialRole = 'admin', title, subtitle }) => {
     // Simulate login for smooth feedback
     setTimeout(() => {
       setLoading(false)
+      localStorage.setItem('userRole', role)
+      localStorage.setItem('userName', role === 'admin' ? 'Admin' : 'John Doe')
       toast.success(
         `Logged in successfully as ${role === 'admin' ? 'Administrator' : 'Employee'}`
       )
