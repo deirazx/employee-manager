@@ -107,21 +107,19 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
                   if (isMobile && onClose) onClose()
                 }}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 group cursor-pointer ${
-                    isActive
-                      ? 'bg-[#162138] text-white font-semibold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 group cursor-pointer ${isActive
+                    ? 'bg-[#162138] text-white font-semibold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
                     <item.icon
-                      className={`w-4 h-4 transition-colors ${
-                        isActive
-                          ? 'text-indigo-400'
-                          : 'text-slate-400 group-hover:text-slate-200'
-                      }`}
+                      className={`w-4 h-4 transition-colors ${isActive
+                        ? 'text-indigo-400'
+                        : 'text-slate-400 group-hover:text-slate-200'
+                        }`}
                     />
                     <span className="flex-1">{item.name}</span>
                     {isActive && (
@@ -158,11 +156,10 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
 
       {/* Mobile Drawer (Visible on < md when mobileOpen is true) */}
       <div
-        className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
-          mobileOpen
-            ? 'opacity-100 pointer-events-auto'
-            : 'opacity-0 pointer-events-none'
-        }`}
+        className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${mobileOpen
+          ? 'opacity-100 pointer-events-auto'
+          : 'opacity-0 pointer-events-none'
+          }`}
       >
         {/* Backdrop overlay */}
         <div
@@ -172,9 +169,8 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
 
         {/* Slide-over Drawer Panel */}
         <aside
-          className={`absolute top-0 bottom-0 left-0 w-72 max-w-[85vw] bg-[#0B1120] text-slate-300 shadow-2xl transition-transform duration-300 ease-out border-r border-slate-800/80 ${
-            mobileOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`absolute top-0 bottom-0 left-0 w-72 max-w-[85vw] bg-[#0B1120] text-slate-300 shadow-2xl transition-transform duration-300 ease-out border-r border-slate-800/80 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           {renderSidebarContent(true)}
         </aside>
