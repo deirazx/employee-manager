@@ -4,6 +4,7 @@ import { protect } from "../middleware/protect.middleware.js";
 
 const attendanceRouter = Router();
 
+attendanceRouter.post("/", protect, clockInOut);
 attendanceRouter.post("/clock", protect, clockInOut);
 attendanceRouter.get("/", protect, getAttendance);
 
