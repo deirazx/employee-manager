@@ -78,12 +78,15 @@ export const getAttendance = async (req, res) => {
         const employee = await Employee.findOne({ userId: user._id });
         if (!employee) return res.status(404).json({ error: "Employee record not found" });
 
-        const limit = parseInt(req.query.limit || 40);
+        const limit = parseInt(req.query.limit || 30);
         const records = await Attendance.find({ employeeId: employee._id })
             .sort({ date: -1 })
             .limit(limit);
 
-        return res.status(200).json(records);
+        return res.status(200).json({
+            data: records,
+            employee: { isDeleted: employee.isDeleted }
+        });
     } catch (error) {
         console.error("Get attendance error:", error);
         return res.status(500).json({ error: "Failed to fetch attendance" });
