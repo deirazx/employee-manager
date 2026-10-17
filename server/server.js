@@ -9,6 +9,8 @@ import employeesRouter from "./routes/employee.route.js";
 import profileRouter from "./routes/profile.route.js";
 import attendanceRouter from "./routes/attendance.route.js";
 import leaveRouter from "./routes/leave.route.js";
+import payslipRouter from "./routes/payslip.route.js";
+import dashboardRouter from "./routes/dashboard.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -26,6 +28,8 @@ app.use("/api/employees", employeesRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/attendance", attendanceRouter);
 app.use("/api/leaves", leaveRouter);
+app.use("/api/payslips", payslipRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 ConnectDb().then(() => {
     app.listen(PORT, () => console.log(`Server is running at ${PORT}`));
