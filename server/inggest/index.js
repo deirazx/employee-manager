@@ -1,6 +1,7 @@
 import { Inngest } from "inngest";
 import Attendance from "../models/Attendance.js";
 import Employee from "../models/Employee.js";
+import LeaveApplication from "../models/LeaveApplication.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({
@@ -38,5 +39,25 @@ const autoCheckOut = inngest.createFunction(
     },
 );
 
+const leaveApplicationReminder = inngest.createFunction(
+    { id: "leave-application-reminder", triggers: [{ event: "leave/pending" }] },
+    async ({ event, step }) => {
+        const { leaveApplicationId } = event.data;
+
+
+        // wait for 24 hours
+        await step.sleepUntil("wait-for-the-24-hours", new Date(new Date().getTime() + 24 * 60 * 60 * 1000))
+
+        const leaveApplication = await LeaveApplication.findById(leaveApplicationId)
+
+        if (leaveApplication?.status === "PENDING") {
+            const employee = await Employee.findById(leaveApplication.employeeId);
+
+            // Send reminder email to admin to take action on leave application
+        }
+    }
+
+);
+
 // Create an empty array where we'll export future Inngest functions
-export const functions = [autoCheckOut];
+export const functions = [autoCheckOut, leaveApplicationReminder];
