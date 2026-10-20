@@ -84,6 +84,24 @@ const attendanceReminderCron = inngest.createFunction(
                 department: e.department,
             }));
         });
+
+        // Step 3: Get employee IDs on approved leave today
+        const onLeaveIds = await step.run("get-on-leave-ids", async () => {
+            const leaves = await LeaveApplication.find({
+                status: "APPROVED",
+                startDate: { $lte: new Date(today.endUTC) },
+                endDate: { $gte: new Date(today.startUTC) },
+            }).lean();
+            return leaves.map((l) => l.employeeId.toString());
+        });
+
+        // Step 4: Get employee IDs who already checked in today
+        const checkedInIds = await step.run("get-checked-in-ids", async () => {
+            const attendance = await Attendance.find({
+                date: { $gte: new Date(today.startUTC), $lt: new Date(today.endUTC) },
+            }).lean();
+            return attendance.map((att) => att.employeeId.toString());
+        });
     }
 );
 
