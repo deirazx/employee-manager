@@ -59,5 +59,18 @@ const leaveApplicationReminder = inngest.createFunction(
 
 );
 
+// Cron: Check attendance at 11:30 AM IST (06:00 UTC) and email absent employees
+const attendanceReminderCron = inngest.createFunction(
+    { id: "attendance-reminder-cron", triggers: [{ cron: "0 0 6 * * *" }] }, // 06:00 UTC = 11:30 AM IST
+    async ({ event, step }) => {
+        // Step 1: Get today's date range (IST)
+        const today = await step.run("get-today-date", () => {
+            const startUTC = new Date(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }) + "T00:00:00+05:30");
+            const endUTC = new Date(startUTC.getTime() + 24 * 60 * 60 * 1000);
+            return { startUTC: startUTC.toISOString(), endUTC: endUTC.toISOString() };
+        });
+    }
+);
+
 // Create an empty array where we'll export future Inngest functions
 export const functions = [autoCheckOut, leaveApplicationReminder];
