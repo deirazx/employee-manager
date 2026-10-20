@@ -69,6 +69,21 @@ const attendanceReminderCron = inngest.createFunction(
             const endUTC = new Date(startUTC.getTime() + 24 * 60 * 60 * 1000);
             return { startUTC: startUTC.toISOString(), endUTC: endUTC.toISOString() };
         });
+
+        // Step 2: Get all active, non-deleted employees
+        const activeEmployees = await step.run("get-active-employees", async () => {
+            const employees = await Employee.find({
+                isDeleted: false,
+                employmentStatus: "ACTIVE",
+            }).lean();
+            return employees.map((e) => ({
+                _id: e._id.toString(),
+                firstName: e.firstName,
+                lastName: e.lastName,
+                email: e.email,
+                department: e.department,
+            }));
+        });
     }
 );
 
