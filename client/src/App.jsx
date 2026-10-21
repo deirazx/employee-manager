@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Toaster } from "react-hot-toast"
 import { Routes, Route, Navigate } from "react-router-dom"
 import LoginLanding from './pages/LoginLanding'
@@ -11,8 +11,18 @@ import Payslips from './pages/Payslips'
 import Settings from './pages/Settings'
 import PrintPayslip from './pages/PrintPayslip'
 import LoginForm from './components/LoginForm'
+import api from './api/axios'
+import { useDispatch } from 'react-redux'
+import { setUser, logout } from './app/slices/auth'
 
 const App = () => {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    api.get('/profile')
+      .then(res => dispatch(setUser(res.data)))
+      .catch(() => dispatch(logout()))
+  }, [])
+
   return (
     <>
       <Toaster />
