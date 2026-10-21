@@ -13,12 +13,17 @@ import {
   LogOut,
   X,
 } from 'lucide-react'
+import { useDispatch, useSelector } from 'react-redux'
+import { logout } from '../app/slices/auth'
+import api from '../api/axios'
 
 const Sidebar = ({ mobileOpen = false, onClose }) => {
+  const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-  const role = localStorage.getItem('userRole') || 'admin'
-  const userName = localStorage.getItem('userName') || 'John Doe'
+  const { user } = useSelector((state) => state.auth)
+  const role = user?.role?.toLowerCase() || 'admin'
+  const userName = user?.email?.split('@')[0] || 'User'
   const displayRole = role === 'admin' ? 'Administrator' : 'Employee'
   const userInitial = userName.charAt(0).toUpperCase()
 
@@ -40,11 +45,16 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
     { name: 'Settings', path: '/settings', icon: Settings },
   ]
 
-  const handleLogout = () => {
-    localStorage.removeItem('userRole')
-    localStorage.removeItem('userName')
-    toast.success('Logged out successfully')
-    navigate('/login')
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout")
+    } catch (error) {
+      console.error("Error in logout:", error)
+    } finally {
+      dispatch(logout())
+      toast.success('Logged out successfully')
+      navigate('/login')
+    }
   }
 
   // Sidebar content (used for both desktop and mobile drawer)
@@ -160,11 +170,10 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
       <div
         aria-hidden={!mobileOpen}
         inert={!mobileOpen ? '' : undefined}
-        className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
-          mobileOpen
-            ? 'opacity-100 pointer-events-auto'
-            : 'opacity-0 pointer-events-none'
-        }`}
+        className={`md:hidden fixed inset-0 z-50 transition-opacity duration-300 ${mobileOpen
+          ? 'opacity-100 pointer-events-auto'
+          : 'opacity-0 pointer-events-none'
+          }`}
       >
         {/* Backdrop overlay */}
         <div

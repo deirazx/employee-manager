@@ -12,10 +12,14 @@ export const getProfile = async (req, res) => {
             return res.json({
                 firstName: "Admin",
                 lastName: "",
-                email: req.user?.email || ""
+                email: req.user?.email || "",
+                role: req.user?.role || "ADMIN",
             });
         }
-        return res.status(200).json(employee);
+        return res.status(200).json({
+            ...employee.toObject(),
+            role: req.user?.role || "EMPLOYEE",
+        });
     } catch (error) {
         console.error("Get profile error:", error);
         return res.status(500).json({ error: "Failed to fetch profile" });

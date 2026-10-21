@@ -2,8 +2,12 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { Mail, Lock, Eye, EyeOff, Shield, User } from 'lucide-react'
+import { useDispatch } from "react-redux"
+import { setUser } from '../app/slices/auth'
+import api from '../api/axios'
 
 const LoginRightSide = ({ initialRole = 'admin', title, subtitle }) => {
+  const dispatch = useDispatch()
   const navigate = useNavigate()
   const [role, setRole] = useState(initialRole || 'admin')
   const [email, setEmail] = useState('')
@@ -16,6 +20,27 @@ const LoginRightSide = ({ initialRole = 'admin', title, subtitle }) => {
     setRole(selectedRole)
   }
 
+  const loginUser = async () => {
+    try {
+      setLoading(true)
+      const result = await api.post("/auth/login", { email, password, role_type: role })
+
+      // Save user to Redux
+      dispatch(setUser(result.data.user))
+
+      toast.success(
+        `Logged in successfully as ${role === 'admin' ? 'Administrator' : 'Employee'}`
+      )
+
+      navigate('/dashboard')
+    } catch (error) {
+      console.error("Error while logging in user:", error)
+      toast.error(error.response?.data?.error || 'Invalid credentials or login failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -24,18 +49,7 @@ const LoginRightSide = ({ initialRole = 'admin', title, subtitle }) => {
       return
     }
 
-    setLoading(true)
-
-    // Simulate login for smooth feedback
-    setTimeout(() => {
-      setLoading(false)
-      localStorage.setItem('userRole', role)
-      localStorage.setItem('userName', role === 'admin' ? 'Admin' : 'John Doe')
-      toast.success(
-        `Logged in successfully as ${role === 'admin' ? 'Administrator' : 'Employee'}`
-      )
-      navigate('/dashboard')
-    }, 600)
+    loginUser()
   }
 
   const currentTitle =
@@ -54,11 +68,10 @@ const LoginRightSide = ({ initialRole = 'admin', title, subtitle }) => {
           <button
             type="button"
             onClick={() => handleRoleChange('admin')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
-              role === 'admin'
-                ? 'bg-indigo-950 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${role === 'admin'
+              ? 'bg-indigo-950 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
             <Shield className="w-4 h-4" />
             <span>Admin</span>
@@ -66,11 +79,10 @@ const LoginRightSide = ({ initialRole = 'admin', title, subtitle }) => {
           <button
             type="button"
             onClick={() => handleRoleChange('employee')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
-              role === 'employee'
-                ? 'bg-indigo-950 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${role === 'employee'
+              ? 'bg-indigo-950 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
             <User className="w-4 h-4" />
             <span>Employee</span>
