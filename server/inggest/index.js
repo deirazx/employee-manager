@@ -8,6 +8,7 @@ import "dotenv/config"
 // Create a client to send and receive events
 export const inngest = new Inngest({
     id: "fullstack-ems",
+    isDev: process.env.NODE_ENV !== "production",
 });
 
 const autoCheckOut = inngest.createFunction(
