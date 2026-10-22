@@ -2,13 +2,14 @@ import React, { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import { Menu, User } from 'lucide-react'
+import { useSelector } from 'react-redux'
 
 const Layout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const role = localStorage.getItem('userRole') || 'employee'
-  const userName =
-    localStorage.getItem('userName') || (role === 'admin' ? 'Admin' : 'John Doe')
-  const userInitial = userName.charAt(0).toUpperCase()
+  const { user, loading } = useSelector((state) => state.auth)
+  const role = user?.role?.toLowerCase() || 'employee'
+  const userName = user?.email?.split('@')[0] || (loading ? '' : 'User')
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : '?'
 
   return (
     <div className="flex flex-col md:flex-row h-screen w-full bg-slate-50 overflow-hidden">
