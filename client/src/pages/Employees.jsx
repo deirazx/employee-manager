@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Search, Plus, X, Building2, User, Briefcase, Mail } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import { DEPARTMENTS } from '../constants/departments'
 
 const INITIAL_EMPLOYEES = [
   {
@@ -25,8 +26,6 @@ const INITIAL_EMPLOYEES = [
     initials: 'JD',
   },
 ]
-
-const DEPARTMENTS = ['All Departments', 'Engineering', 'IT Support', 'Design', 'Marketing', 'Human Resources']
 
 const Employees = () => {
   const [employees, setEmployees] = useState(INITIAL_EMPLOYEES)
