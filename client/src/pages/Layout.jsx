@@ -8,7 +8,7 @@ const Layout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, loading } = useSelector((state) => state.auth)
   const role = user?.role?.toLowerCase() || 'employee'
-  const userName = user?.email?.split('@')[0] || (loading ? '' : 'User')
+  const userName = user?.firstName || user?.email?.split('@')[0] || (loading ? '' : 'User')
   const userInitial = userName ? userName.charAt(0).toUpperCase() : '?'
 
   return (

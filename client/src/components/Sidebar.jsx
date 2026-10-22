@@ -23,7 +23,7 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
   const location = useLocation()
   const { user, loading } = useSelector((state) => state.auth)
   const role = user?.role?.toLowerCase() || 'admin'
-  const userName = user?.email?.split('@')[0] || (loading ? '' : 'User')
+  const userName = user?.firstName || user?.email?.split('@')[0] || (loading ? '' : 'User')
   const displayRole = role === 'admin' ? 'Administrator' : 'Employee'
   const userInitial = userName ? userName.charAt(0).toUpperCase() : '?'
 
