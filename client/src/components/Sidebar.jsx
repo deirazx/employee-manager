@@ -21,11 +21,11 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user } = useSelector((state) => state.auth)
+  const { user, loading } = useSelector((state) => state.auth)
   const role = user?.role?.toLowerCase() || 'admin'
-  const userName = user?.email?.split('@')[0] || 'User'
+  const userName = user?.firstName || user?.email?.split('@')[0] || (loading ? '' : 'User')
   const displayRole = role === 'admin' ? 'Administrator' : 'Employee'
-  const userInitial = userName.charAt(0).toUpperCase()
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : '?'
 
   // Auto-close mobile drawer when route changes
   useEffect(() => {
@@ -91,18 +91,30 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
         </div>
 
         {/* User Profile Card */}
-        <div className="bg-[#131b2e] border border-slate-800/80 rounded-xl p-3 mb-6 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#1c263d] text-slate-200 font-semibold text-sm flex items-center justify-center shrink-0 border border-slate-700/50">
-            {userInitial}
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-white truncate tracking-tight">
-              {userName}
-            </h2>
-            <p className="text-xs text-slate-400 capitalize truncate">
-              {displayRole}
-            </p>
-          </div>
+        <div className="bg-[#131b2e] border border-slate-800/80 rounded-xl p-3 mb-6 flex items-center gap-3 min-h-[58px]">
+          {loading ? (
+            <div className="flex items-center gap-3 w-full animate-pulse">
+              <div className="w-9 h-9 rounded-lg bg-slate-800 shrink-0" />
+              <div className="flex-1 space-y-1.5 min-w-0">
+                <div className="h-3.5 bg-slate-800 rounded w-20" />
+                <div className="h-2.5 bg-slate-800/60 rounded w-14" />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="w-9 h-9 rounded-lg bg-[#1c263d] text-slate-200 font-semibold text-sm flex items-center justify-center shrink-0 border border-slate-700/50">
+                {userInitial}
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-white truncate tracking-tight">
+                  {userName}
+                </h2>
+                <p className="text-xs text-slate-400 capitalize truncate">
+                  {displayRole}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Navigation Menu */}

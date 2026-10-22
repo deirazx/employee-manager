@@ -19,7 +19,7 @@ const App = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     api.get('/profile')
-      .then(res => dispatch(setUser(res.data)))
+      .then((res) => dispatch(setUser(res.data)))
       .catch(() => dispatch(logout()))
   }, [])
 

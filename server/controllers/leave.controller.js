@@ -10,7 +10,11 @@ export const createLeave = async (req, res) => {
         const employee = await Employee.findOne({ userId: user._id });
 
         if (!employee) {
-            return res.status(404).json({ error: "Employee record not found" });
+            return res.status(400).json({
+                error: user.role === "ADMIN"
+                    ? "Admins cannot apply for employee leaves. Please login with an Employee account to apply."
+                    : "Employee record not found for this account",
+            });
         }
 
         if (employee.isDeleted) {
@@ -27,11 +31,17 @@ export const createLeave = async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        if (new Date(startDate) < today || new Date(endDate) < today) {
-            return res.status(400).json({ error: "Leave dates must be in the future" });
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(endDate);
+        end.setHours(0, 0, 0, 0);
+
+        if (start < today || end < today) {
+            return res.status(400).json({ error: "Leave dates cannot be in the past" });
         }
 
-        if (new Date(endDate) < new Date(startDate)) {
+        if (end < start) {
             return res.status(400).json({ error: "End date cannot be before start date" });
         }
 
@@ -44,10 +54,15 @@ export const createLeave = async (req, res) => {
             status: "PENDING",
         });
 
-        await inngest.send({
-            name: "leave/pending",
-            data: { leaveApplicationId: leave._id }
-        })
+        // Background notification (wrapped so inngest network failures don't block DB save)
+        try {
+            await inngest.send({
+                name: "leave/pending",
+                data: { leaveApplicationId: leave._id },
+            });
+        } catch (inngestErr) {
+            console.warn("Inngest event warning:", inngestErr.message);
+        }
 
         return res.status(201).json({ success: true, data: leave });
     } catch (error) {
@@ -72,11 +87,21 @@ export const getLeaves = async (req, res) => {
 
             const data = leaves.map((l) => {
                 const obj = l.toObject ? l.toObject() : l;
+                const emp = obj.employeeId;
+                const employeeName = emp
+                    ? `${emp.firstName || ""} ${emp.lastName || ""}`.trim() || emp.name || "Employee"
+                    : "Employee";
+
                 return {
                     ...obj,
                     id: obj._id.toString(),
-                    employee: obj.employeeId?.name || "Employee",
-                    employeeId: obj.employeeId?._id?.toString() || obj.employeeId?.toString(),
+                    employee: employeeName,
+                    employeeName,
+                    employeeEmail: emp?.email || "",
+                    employeePhone: emp?.phone || "",
+                    department: emp?.department || "General",
+                    role: emp?.position || "Employee",
+                    employeeId: emp?._id?.toString() || emp?.toString(),
                 };
             });
 
@@ -88,11 +113,29 @@ export const getLeaves = async (req, res) => {
             }
 
             const leaves = await LeaveApplication.find({ employeeId: employee._id })
+                .populate("employeeId")
                 .sort({ createdAt: -1 });
+
+            const data = leaves.map((l) => {
+                const obj = l.toObject ? l.toObject() : l;
+                const emp = obj.employeeId || employee;
+                const employeeName = `${emp.firstName || ""} ${emp.lastName || ""}`.trim() || "Employee";
+
+                return {
+                    ...obj,
+                    id: obj._id.toString(),
+                    employee: employeeName,
+                    employeeName,
+                    employeeEmail: emp?.email || "",
+                    employeePhone: emp?.phone || "",
+                    department: emp?.department || "General",
+                    role: emp?.position || "Employee",
+                };
+            });
 
             return res.json({
                 success: true,
-                data: leaves,
+                data,
                 employee: { ...employee, id: employee._id.toString() },
             });
         }

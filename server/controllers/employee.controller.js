@@ -57,13 +57,13 @@ export const createEmployee = async (req, res) => {
             firstName,
             lastName,
             email,
-            phone,
-            position,
+            phone: phone || "0000000000",
+            position: position || "Employee",
             department: department || "Engineering",
             basicSalary: Number(basicSalary) || 0,
             allowances: Number(allowances) || 0,
             deductions: Number(deductions) || 0,
-            joinDate: new Date(joinDate),
+            joinDate: joinDate ? new Date(joinDate) : new Date(),
             bio: bio || ""
         });
 
