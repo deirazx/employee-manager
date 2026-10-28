@@ -18,12 +18,10 @@ import { setUser, logout } from './app/slices/auth'
 const App = () => {
   const dispatch = useDispatch();
   useEffect(() => {
+    // Check authenticated session via HTTP cookie
     api.get('/profile')
       .then((res) => dispatch(setUser(res.data)))
-      .catch(() => {
-        localStorage.removeItem('token')
-        dispatch(logout())
-      })
+      .catch(() => dispatch(logout()))
   }, [dispatch])
 
   return (

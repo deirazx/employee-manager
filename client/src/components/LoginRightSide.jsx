@@ -25,11 +25,7 @@ const LoginRightSide = ({ initialRole = 'admin', title, subtitle }) => {
       setLoading(true)
       const result = await api.post("/auth/login", { email, password, role_type: role })
 
-      if (result.data?.token) {
-        localStorage.setItem('token', result.data.token)
-      }
-
-      // Save user to Redux
+      // Save user to Redux (cookie is automatically set by browser via Set-Cookie header)
       dispatch(setUser(result.data.user))
 
       toast.success(

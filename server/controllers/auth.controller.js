@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-// Login for employee and admin
+// Login for employee and admin (Cookie-only auth)
 // POST /api/auth/login
 export const login = async (req, res) => {
     try {
@@ -47,7 +47,7 @@ export const login = async (req, res) => {
             secure: isProduction,
             sameSite: isProduction ? "none" : "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000
-        }).json({ user: payload, token });
+        }).json({ success: true, user: payload });
     } catch (error) {
         console.error("Login error:", error);
         return res.status(500).json({ error: "Login failed" });
