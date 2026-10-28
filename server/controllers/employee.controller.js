@@ -2,15 +2,15 @@ import Employee from "../models/Employee.js";
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 
-// Get  employess
-// GET /api/employess
+// Get employees
+// GET /api/employees
 export const getEmployees = async (req, res) => {
     try {
         const { department } = req.query;
 
         // 1. Dynamic filter object
-        const where = {};
-        if (department) where.department = department;
+        const where = { isDeleted: { $ne: true } };
+        if (department && department !== "All Departments") where.department = department;
 
         // 2. Chained Mongoose query
         const employees = await Employee.find(where)
@@ -32,9 +32,8 @@ export const getEmployees = async (req, res) => {
     }
 };
 
-
 // Create employee
-// POST /api/employess/
+// POST /api/employees
 export const createEmployee = async (req, res) => {
     try {
         const { firstName, lastName, email, phone, position, department, basicSalary, allowances, deductions, joinDate, password, role, bio } = req.body;
@@ -43,7 +42,7 @@ export const createEmployee = async (req, res) => {
             return res.status(400).json({
                 error: "Missing required fields"
             });
-        };
+        }
 
         const hashed = await bcrypt.hash(password, 12);
         const user = await User.create({
@@ -74,60 +73,80 @@ export const createEmployee = async (req, res) => {
             return res.status(400).json({
                 error: "Email already exists"
             });
-        };
+        }
         console.error("Create employee error:", error);
-        return res.status(500).json({ error: "Failed to create employee" })
-    };
+        return res.status(500).json({ error: "Failed to create employee" });
+    }
 };
 
-
 // Update employee
-// PUT /api/employess/:id
+// PUT /api/employees/:id
 export const updateEmployee = async (req, res) => {
     try {
         const { id } = req.params;
-        const { firstName, lastName, email, phone, position, department, basicSalary, allowances, deductions, password, role, bio, employmentStatus } = req.body;
-
-        const employee = await Employee.findById(id);
-        if (!employee) return res.status(404).json({ error: "Employee not found" })
-
-
-        await Employee.findByIdAndUpdate(id, {
+        const {
             firstName,
             lastName,
             email,
             phone,
             position,
-            department: department || "Engineering",
-            basicSalary: Number(basicSalary) || 0,
-            allowances: Number(allowances) || 0,
-            deductions: Number(deductions) || 0,
-            employmentStatus: employmentStatus || "ACTIVE",
-            bio: bio || ""
-        });
+            department,
+            basicSalary,
+            allowances,
+            deductions,
+            password,
+            role,
+            bio,
+            employmentStatus
+        } = req.body;
 
-        // Update user record
+        const employee = await Employee.findById(id);
+        if (!employee) return res.status(404).json({ error: "Employee not found" });
 
-        const userUpdate = { email };
+        const updatedEmployee = await Employee.findByIdAndUpdate(
+            id,
+            {
+                firstName,
+                lastName,
+                email,
+                phone: phone || "0000000000",
+                position: position || "Employee",
+                department: department || "Engineering",
+                basicSalary: Number(basicSalary) || 0,
+                allowances: Number(allowances) || 0,
+                deductions: Number(deductions) || 0,
+                employmentStatus: employmentStatus || "ACTIVE",
+                bio: bio || ""
+            },
+            { new: true }
+        );
+
+        // Update user record if needed
+        const userUpdate = {};
+        if (email) userUpdate.email = email;
         if (role) userUpdate.role = role;
-        if (password) userUpdate.password = await bcrypt.hash(password, 12);
-        await User.findByIdAndUpdate(employee.userId, userUpdate);
+        if (password && password.trim()) {
+            userUpdate.password = await bcrypt.hash(password.trim(), 12);
+        }
+        if (Object.keys(userUpdate).length > 0 && employee.userId) {
+            await User.findByIdAndUpdate(employee.userId, userUpdate);
+        }
 
-        return res.status(201).json({ success: true, employee });
+        return res.status(200).json({ success: true, employee: updatedEmployee });
 
     } catch (error) {
         if (error.code === 11000) {
             return res.status(400).json({
                 error: "Email already exists"
             });
-        };
-        return res.status(500).json({ error: "Failed to update employee" })
-    };
-}
+        }
+        console.error("Update employee error:", error);
+        return res.status(500).json({ error: "Failed to update employee" });
+    }
+};
 
-
-// Delete employee
-// DELETE /api/employess/:id
+// Delete employee (soft delete)
+// DELETE /api/employees/:id
 export const deleteEmployee = async (req, res) => {
     try {
         const { id } = req.params;
@@ -137,8 +156,9 @@ export const deleteEmployee = async (req, res) => {
         employee.isDeleted = true;
         employee.employmentStatus = "INACTIVE";
         await employee.save();
-        return res.json({ success: true });
+        return res.json({ success: true, message: "Employee deleted successfully" });
     } catch (error) {
-        return res.status(500).json({ error: "failed to delete employee" })
+        console.error("Delete employee error:", error);
+        return res.status(500).json({ error: "Failed to delete employee" });
     }
-}
+};

@@ -22,9 +22,12 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, loading } = useSelector((state) => state.auth)
-  const role = user?.role?.toLowerCase() || 'admin'
-  const userName = user?.firstName || user?.email?.split('@')[0] || (loading ? '' : 'User')
-  const displayRole = role === 'admin' ? 'Administrator' : 'Employee'
+  const isAdmin = (user?.role_type || user?.role || '').toLowerCase() === 'admin'
+  const role = isAdmin ? 'admin' : 'employee'
+  const userName = user?.firstName
+    ? `${user.firstName} ${user.lastName || ''}`.trim()
+    : user?.email?.split('@')[0] || (loading ? '' : 'User')
+  const displayRole = isAdmin ? 'Administrator' : 'Employee'
   const userInitial = userName ? userName.charAt(0).toUpperCase() : '?'
 
   // Auto-close mobile drawer when route changes

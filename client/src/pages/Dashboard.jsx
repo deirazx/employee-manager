@@ -42,9 +42,8 @@ const Dashboard = () => {
     }
   }
 
-  // 5. useEffect hamesha component ke top-level pe hona chahiye (kisi if condition ke andar nahi!)
+  // 5. useEffect hamesha component ke top-level pe hona chahiye
   useEffect(() => {
-    // Jab auth check complete ho jaye tabhi data fetch karo ya login par bhejo
     if (!authLoading) {
       if (user) {
         fetchDashboardData()
@@ -124,7 +123,7 @@ const Dashboard = () => {
     {
       title: 'Latest Payslip',
       value: dashboardData?.latestPayslip?.netSalary
-        ? `₹${Number(dashboardData.latestPayslip.netSalary).toLocaleString()}`
+        ? `$${Number(dashboardData.latestPayslip.netSalary).toLocaleString()}`
         : 'N/A',
       icon: DollarSign,
     },
@@ -144,7 +143,7 @@ const Dashboard = () => {
       ? "Welcome back, Admin — here's your overview"
       : `${dashboardData?.employee?.position || 'Employee'} • ${dashboardData?.employee?.department || 'General'}`
 
-  // 9. Jab tak data ya session load ho raha hai tab tak skeleton loader dikhao (no UI flicker)
+  // 9. Skeleton loader
   if (authLoading || dataLoading) {
     return (
       <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
