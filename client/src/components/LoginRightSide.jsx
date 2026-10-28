@@ -25,6 +25,10 @@ const LoginRightSide = ({ initialRole = 'admin', title, subtitle }) => {
       setLoading(true)
       const result = await api.post("/auth/login", { email, password, role_type: role })
 
+      if (result.data?.token) {
+        localStorage.setItem('token', result.data.token)
+      }
+
       // Save user to Redux
       dispatch(setUser(result.data.user))
 

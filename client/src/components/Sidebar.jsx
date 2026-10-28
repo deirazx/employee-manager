@@ -54,6 +54,7 @@ const Sidebar = ({ mobileOpen = false, onClose }) => {
     } catch (error) {
       console.error("Error in logout:", error)
     } finally {
+      localStorage.removeItem("token")
       dispatch(logout())
       toast.success('Logged out successfully')
       navigate('/login')

@@ -20,8 +20,11 @@ const App = () => {
   useEffect(() => {
     api.get('/profile')
       .then((res) => dispatch(setUser(res.data)))
-      .catch(() => dispatch(logout()))
-  }, [])
+      .catch(() => {
+        localStorage.removeItem('token')
+        dispatch(logout())
+      })
+  }, [dispatch])
 
   return (
     <>

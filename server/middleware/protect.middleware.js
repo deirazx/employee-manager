@@ -3,7 +3,10 @@ import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
     try {
-        const token = req.cookies?.token;
+        const authHeader = req.headers.authorization;
+        const token =
+            req.cookies?.token ||
+            (authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null);
 
         if (!token) {
             return res.status(401).json({ error: "Access denied. No token provided." });
@@ -42,14 +45,11 @@ export const protectAdmin = async (req, res, next) => {
             return res.status(403).json({ error: "Forbidden! Admin access required" });
         }
 
-        next()
+        next();
     } catch (error) {
-        // Server console par error trace print karein debug karne ke liye
         console.error("Admin Authorization Error:", error);
-
-        // Client ko clean error response bhejein
         return res.status(500).json({
             error: "Internal server error during authorization check"
         });
     }
-}
+};

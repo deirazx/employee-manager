@@ -37,7 +37,11 @@ export const login = async (req, res) => {
 
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-        const isProduction = process.env.NODE_ENV === "production";
+        const isProduction =
+            process.env.NODE_ENV === "production" ||
+            process.env.RENDER === "true" ||
+            Boolean(process.env.RENDER);
+
         return res.cookie("token", token, {
             httpOnly: true,
             secure: isProduction,
@@ -98,7 +102,11 @@ export const changePassword = async (req, res) => {
 // POST /api/auth/logout
 export const logout = async (req, res) => {
     try {
-        const isProduction = process.env.NODE_ENV === "production";
+        const isProduction =
+            process.env.NODE_ENV === "production" ||
+            process.env.RENDER === "true" ||
+            Boolean(process.env.RENDER);
+
         res.clearCookie("token", {
             httpOnly: true,
             secure: isProduction,

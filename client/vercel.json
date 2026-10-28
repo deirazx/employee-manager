@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/:path*",
+            "destination": "https://emp-management-backend-16u5.onrender.com/api/:path*"
+        },
+        {
             "source": "/(.*)",
             "destination": "/"
         }
