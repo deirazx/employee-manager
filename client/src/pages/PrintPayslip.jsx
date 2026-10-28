@@ -1,32 +1,106 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Printer, Building2, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Printer, Building2, CheckCircle2, Loader2 } from 'lucide-react'
+import api from '../api/axios'
 import { INITIAL_PAYSLIPS } from '../constants/payslips'
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
 const PrintPayslip = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [payslip, setPayslip] = useState(null)
 
-  // Retrieve payslip data from localStorage or fallback to default dataset
-  const savedData = localStorage.getItem('payslips_data')
-  const allPayslips = savedData ? JSON.parse(savedData) : INITIAL_PAYSLIPS
-  const item =
-    allPayslips.find((p) => p.id === id) ||
-    allPayslips[0] || {
-      id: 'PAY-2026-02-01',
-      employee: 'David Michael',
-      period: 'February 2026',
-      basicSalary: '$2,000',
-      netSalary: '$2,180',
-      department: 'IT Support',
-      role: 'Associate Business Support',
-      allowances: '$280',
-      deductions: '$100',
+  useEffect(() => {
+    const fetchPayslip = async () => {
+      try {
+        setLoading(true)
+        const res = await api.get(`/payslips/${id}`)
+        if (res.data?.data) {
+          setPayslip(res.data.data)
+        }
+      } catch (err) {
+        console.warn('API payslip fetch failed, falling back to local dataset:', err)
+        // Fallback to localStorage or mock data
+        const savedData = localStorage.getItem('payslips_data')
+        const allPayslips = savedData ? JSON.parse(savedData) : INITIAL_PAYSLIPS
+        const matched = allPayslips.find((p) => p.id === id || p._id === id) || allPayslips[0]
+        setPayslip(matched)
+      } finally {
+        setLoading(false)
+      }
     }
+
+    if (id) {
+      fetchPayslip()
+    }
+  }, [id])
 
   const handlePrint = () => {
     window.print()
   }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+        <div className="flex items-center gap-3 text-slate-600 font-medium">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+          <span>Loading payslip voucher...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Normalize details
+  const emp = payslip?.employee || {}
+  const employeeName =
+    typeof emp === 'object' && (emp.firstName || emp.lastName)
+      ? `${emp.firstName || ''} ${emp.lastName || ''}`.trim()
+      : payslip?.employee || 'Employee'
+
+  const designation = emp.position || payslip?.role || 'Staff Member'
+  const department = emp.department || payslip?.department || 'Engineering'
+
+  const period =
+    payslip?.month && payslip?.year
+      ? `${MONTH_NAMES[payslip.month - 1]} ${payslip.year}`
+      : payslip?.period || 'Current Period'
+
+  const basicSalary =
+    typeof payslip?.basicSalary === 'number'
+      ? `$${payslip.basicSalary.toLocaleString()}`
+      : payslip?.basicSalary || '$0'
+
+  const allowances =
+    typeof payslip?.allowances === 'number'
+      ? `$${payslip.allowances.toLocaleString()}`
+      : payslip?.allowances || '$0'
+
+  const deductions =
+    typeof payslip?.deductions === 'number'
+      ? `$${payslip.deductions.toLocaleString()}`
+      : payslip?.deductions || '$0'
+
+  const netSalary =
+    typeof payslip?.netSalary === 'number'
+      ? `$${payslip.netSalary.toLocaleString()}`
+      : payslip?.netSalary || '$0'
+
+  const slipRef = payslip?._id || payslip?.id || id
 
   return (
     <div className="min-h-screen bg-slate-100 py-8 px-4 sm:px-6 print:bg-white print:p-0">
@@ -73,7 +147,7 @@ const PrintPayslip = () => {
             <span className="inline-block px-2.5 py-1 text-[11px] font-bold uppercase rounded bg-indigo-50 text-indigo-700 border border-indigo-200/60 tracking-wider mb-1">
               Salary Payslip
             </span>
-            <p className="text-xs text-slate-500 font-mono">Ref: {item.id}</p>
+            <p className="text-xs text-slate-500 font-mono">Ref: {slipRef}</p>
           </div>
         </div>
 
@@ -83,25 +157,25 @@ const PrintPayslip = () => {
             <p className="text-slate-400 uppercase font-semibold text-[10px] tracking-wider">
               Employee Name
             </p>
-            <p className="font-bold text-slate-900 mt-1 text-sm">{item.employee}</p>
+            <p className="font-bold text-slate-900 mt-1 text-sm">{employeeName}</p>
           </div>
           <div>
             <p className="text-slate-400 uppercase font-semibold text-[10px] tracking-wider">
               Designation
             </p>
-            <p className="font-medium text-slate-800 mt-1">{item.role || 'Staff Member'}</p>
+            <p className="font-medium text-slate-800 mt-1">{designation}</p>
           </div>
           <div>
             <p className="text-slate-400 uppercase font-semibold text-[10px] tracking-wider">
               Department
             </p>
-            <p className="font-medium text-slate-800 mt-1">{item.department || 'Operations'}</p>
+            <p className="font-medium text-slate-800 mt-1">{department}</p>
           </div>
           <div>
             <p className="text-slate-400 uppercase font-semibold text-[10px] tracking-wider">
               Pay Period
             </p>
-            <p className="font-bold text-indigo-600 mt-1">{item.period}</p>
+            <p className="font-bold text-indigo-600 mt-1">{period}</p>
           </div>
         </div>
 
@@ -120,17 +194,20 @@ const PrintPayslip = () => {
               <div className="p-4 space-y-2.5 text-xs">
                 <div className="flex justify-between">
                   <span className="text-slate-600">Basic Salary</span>
-                  <span className="font-semibold text-slate-900">{item.basicSalary}</span>
+                  <span className="font-semibold text-slate-900">{basicSalary}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">House Rent Allowance (HRA)</span>
-                  <span className="font-semibold text-slate-900">
-                    {item.allowances || '$180'}
+                  <span className="text-slate-600">Allowances (HRA / Special)</span>
+                  <span className="font-semibold text-slate-900">{allowances}</span>
+                </div>
+                <div className="flex justify-between font-bold pt-2 border-t border-slate-100 text-slate-900">
+                  <span>Total Earnings</span>
+                  <span>
+                    $
+                    {(
+                      (Number(payslip?.basicSalary) || 0) + (Number(payslip?.allowances) || 0)
+                    ).toLocaleString()}
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Special Allowances</span>
-                  <span className="font-semibold text-slate-900">$100</span>
                 </div>
               </div>
             </div>
@@ -142,18 +219,16 @@ const PrintPayslip = () => {
               </div>
               <div className="p-4 space-y-2.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Provident Fund (PF)</span>
-                  <span className="font-semibold text-slate-900">
-                    {item.deductions || '$60'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Professional Tax (PT)</span>
-                  <span className="font-semibold text-slate-900">$40</span>
+                  <span className="text-slate-600">Tax / PF / Other Deductions</span>
+                  <span className="font-semibold text-slate-900">{deductions}</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
-                  <span>TDS / Income Tax</span>
+                  <span>Unpaid Leave Deductions</span>
                   <span>$0.00</span>
+                </div>
+                <div className="flex justify-between font-bold pt-2 border-t border-slate-100 text-rose-600">
+                  <span>Total Deductions</span>
+                  <span>-{deductions}</span>
                 </div>
               </div>
             </div>
@@ -173,7 +248,7 @@ const PrintPayslip = () => {
           </div>
 
           <div className="text-2xl sm:text-3xl font-extrabold text-indigo-950 tracking-tight">
-            {item.netSalary}
+            {netSalary}
           </div>
         </div>
 
