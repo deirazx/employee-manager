@@ -1,12 +1,10 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+// Cookie-only authentication middleware
 export const protect = async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        const token =
-            req.cookies?.token ||
-            (authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null);
+        const token = req.cookies?.token;
 
         if (!token) {
             return res.status(401).json({ error: "Access denied. No token provided." });
@@ -35,6 +33,7 @@ export const protect = async (req, res, next) => {
     }
 };
 
+// Admin authorization check
 export const protectAdmin = async (req, res, next) => {
     try {
         if (!req.user) {

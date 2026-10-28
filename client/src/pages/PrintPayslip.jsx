@@ -34,11 +34,8 @@ const PrintPayslip = () => {
           setPayslip(res.data.data)
         }
       } catch (err) {
-        console.warn('API payslip fetch failed, falling back to local dataset:', err)
-        // Fallback to localStorage or mock data
-        const savedData = localStorage.getItem('payslips_data')
-        const allPayslips = savedData ? JSON.parse(savedData) : INITIAL_PAYSLIPS
-        const matched = allPayslips.find((p) => p.id === id || p._id === id) || allPayslips[0]
+        console.warn('API payslip fetch failed, falling back to initial dataset:', err)
+        const matched = INITIAL_PAYSLIPS.find((p) => p.id === id || p._id === id) || INITIAL_PAYSLIPS[0]
         setPayslip(matched)
       } finally {
         setLoading(false)
