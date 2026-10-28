@@ -18,11 +18,32 @@ import { inngest, functions } from "./inggest/index.js";
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware
+// Enable reverse proxy trust for secure cookies on Render / PaaS
+app.set("trust proxy", 1);
+
+// Dynamic CORS configuration for local and deployed frontends (Vercel / Netlify)
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    "http://localhost:5173",
+    "http://localhost:3000",
+].filter(Boolean);
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const cleanOrigin = origin.replace(/\/+$/, "");
+        if (
+            allowedOrigins.some((ao) => ao.replace(/\/+$/, "") === cleanOrigin) ||
+            cleanOrigin.endsWith(".vercel.app") ||
+            cleanOrigin.endsWith(".netlify.app")
+        ) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
     credentials: true,
 }));
+
 app.use(cookieParse());
 app.use(express.json({ limit: "10kb" }));
 app.use(multer().none());
@@ -38,7 +59,6 @@ app.use("/api/payslips", payslipRouter);
 app.use("/api/dashboard", dashboardRouter);
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
-
 
 ConnectDb().then(() => {
     app.listen(PORT, () => console.log(`Server is running at ${PORT}`));
